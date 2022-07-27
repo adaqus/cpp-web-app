@@ -46,17 +46,20 @@ int main()
 {
     crow::SimpleApp app;
 
-    CROW_ROUTE(app, "/").methods(crow::HTTPMethod::GET)([](){
-        // this is just to test instantiating with unique_ptr
-        auto resp = std::make_unique<HttpResponse<Get>>();
-        return resp->getContents();
+    // test instantiating with unique_ptr
+    auto getResp = std::make_unique<HttpResponse<Get>>();
+    // test instantiating with new keyword
+    auto* postResp = new HttpResponse<Post>();
+
+    CROW_ROUTE(app, "/").methods(crow::HTTPMethod::GET)([&](){
+        return getResp->getContents();
     });
 
-    CROW_ROUTE(app, "/").methods(crow::HTTPMethod::POST)([](){
-        // this is just to test instantiating with new keyword (leaks memory)
-        auto* resp = new HttpResponse<Post>();
-        return resp->getContents();
+    CROW_ROUTE(app, "/").methods(crow::HTTPMethod::POST)([&](){
+        return postResp->getContents();
     });
 
     app.port(18080).multithreaded().run();
+
+    delete postResp;
 }
